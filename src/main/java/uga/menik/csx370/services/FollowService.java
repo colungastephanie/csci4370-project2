@@ -42,7 +42,7 @@ public class FollowService {
             }
         }
     }
-
+ 
     // checking if one user follows another
     public boolean isFollowing(String followerId, String followedUserId) throws SQLException {
         int follower = Integer.parseInt(followerId);
@@ -57,5 +57,5 @@ public class FollowService {
                 return rs.next();
             }   
         }
-    } 
+    }  
 }

@@ -1,5 +1,7 @@
 package uga.menik.csx370.utility;
 
+import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,4 +62,11 @@ public class Utility {
         return List.of(postWithComments);
     }
 
+    public static String foramtTime (Timestamp timeStamp) {
+        if (timeStamp == null) {
+            return "No posts.";
+        }
+        java.time.format.DateTimeFormatter format = DateTimeFormatter.ofPattern("MMM dd, yyyy, hh:mm a");
+        return timeStamp.toLocalDateTime().format(format);
+    } //formatTime
 }

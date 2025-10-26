@@ -5,13 +5,17 @@ This is a project developed by Dr. Menik to give the students an opportunity to 
 */
 package uga.menik.csx370.services;
 
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
+
+
 
 import javax.sql.DataSource;
 
@@ -19,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import uga.menik.csx370.models.FollowableUser;
+import uga.menik.csx370.utility.Utility;
+
+
 
 /**
  * This service contains people related functions.
@@ -39,16 +46,31 @@ public class PeopleService {
      */
     public List<FollowableUser> getFollowableUsers(String userIdToExclude) {
         final String sql = """
-            SELECT userId, firstName, lastName
-            FROM user
-            WHERE (? IS NULL OR userId <> ?)
-            ORDER BY lastName, firstName, userId
+            SELECT
+              U.userId,                         
+              U.firstName,                  
+              U.lastName,                          
+              LP.lastPostAt, 
+              (F.followerId IS NOT NULL) AS isFollowed
+            FROM `user` U
+            LEFT JOIN (
+                SELECT P.userId, MAX(P.createdAt) AS lastPostAt
+                FROM post P
+                GROUP BY P.userId
+            ) LP ON LP.userId = U.userId
+            LEFT JOIN follow F
+                   ON F.followedUserId = U.userId
+                  AND F.followerId    = ?
+            WHERE U.userId <> ?
+            ORDER BY (LP.lastPostAt IS NULL), LP.lastPostAt DESC, U.lastName, U.firstName;
             """;
 
         List<FollowableUser> followableUsers = new ArrayList<>();
-
+        int viewerId = Integer.parseInt(userIdToExclude);
         try (Connection connect = dataSource.getConnection();
              PreparedStatement statement = connect.prepareStatement(sql)) {
+                statement.setInt(1, viewerId);
+                statement.setInt(2, viewerId);
             if (userIdToExclude == null || userIdToExclude.isBlank()) {
                 statement.setNull(1, Types.VARCHAR);
                 statement.setNull(2, Types.VARCHAR);
@@ -62,25 +84,30 @@ public class PeopleService {
                     String id = rs.getString("userId");
                     String first = rs.getString("firstName");
                     String last = rs.getString("lastName");
+                    java.sql.Timestamp timeStamp = rs.getTimestamp("lastPostAt");
+                    boolean followed = rs.getBoolean("isFollowed");
 
-                    boolean isFollowed = false;
-                    String lastActiveDate = "N/A";
+                    String lastActiveDateFormat = Utility.foramtTime(timeStamp);
+                    
 
                     FollowableUser user = new FollowableUser(
                             id,
                             first,
                             last,
-                            isFollowed,
-                            lastActiveDate
+                            followed,
+                            lastActiveDateFormat
                     );
 
                     followableUsers.add(user);
                 }
             }
         } catch (SQLException e) {
+            System.err.println("PeopleService SQLState=" + e.getSQLState() + " code=" + e.getErrorCode());
+    e.printStackTrace();
             throw new RuntimeException("Error retrieving followable users", e);
         }
 
         return followableUsers;
     }
+
 }

@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uga.menik.csx370.models.Post;
 import uga.menik.csx370.models.User;
+import uga.menik.csx370.utility.Utility;
 
 @Service
 public class PostService {
@@ -110,12 +111,13 @@ public class PostService {
                 while (rs.next()) {
                     String postId = rs.getString("postId");
                     String content = rs.getString("content");
-                    String postDate = rs.getString("createdAt");
+                    java.sql.Timestamp timeStamp = rs.getTimestamp("createdAt");
                     String useId = rs.getString("userId");
                     String firstName = rs.getString("firstName");
                     String lastName = rs.getString("lastName");
 
                     User user = new User(useId, firstName, lastName);
+                    String postDate = Utility.foramtTime(timeStamp);
                     Post post = new Post(postId, content, postDate, user, 0, 0, false, false);
                     posts.add(post);
                 }

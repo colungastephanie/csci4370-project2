@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import jakarta.servlet.http.HttpSession;
 import uga.menik.csx370.models.FollowableUser;
 import uga.menik.csx370.models.User;
 import uga.menik.csx370.services.FollowService;
@@ -54,19 +55,18 @@ public class PeopleController {
         // get current viewer id safely
         User viewer = userService.getLoggedInUser();
         String viewerId = (viewer != null) ? viewer.getUserId() : null;
-
+        try {
         // call the service (do NOT reference Utility or a static field)
         List<FollowableUser> followableUsers = peopleService.getFollowableUsers(viewerId);
         mv.addObject("users", followableUsers); // correct addObject signature
-
-        // optional error message passthrough
-        mv.addObject("errorMessage", error);
-
-        // show "no content" banner if list empty (optional)
-        if (followableUsers.isEmpty()) {
+          if (followableUsers.isEmpty()) {
             mv.addObject("isNoContent", true);
         }
-
+    } catch (Exception e) {
+        
+        // optional error message passthrough
+        mv.addObject("errorMessage", e);
+    }   
         return mv;
     }
 
@@ -86,6 +86,7 @@ public class PeopleController {
         System.out.println("User is attempting to follow/unfollow a user:");
         System.out.println("\tuserId: " + userId);
         System.out.println("\tisFollow: " + isFollow);
+        
 
         // Redirect the user if the comment adding is a success.
         // return "redirect:/people";
@@ -93,14 +94,14 @@ public class PeopleController {
             return "redirect: /login";
         }
         String viewerId = userService.getLoggedInUser().getUserId();
+        if (viewerId == null || viewerId.equals(userId)) {
+            return "redirect:/people";
+        }
         try {
-            if (!viewerId.equals(userId) && viewerId != null) {
-                followService.setFollow(viewerId, userId, isFollow);
-                return "redirect:/people";
-            } else {
-                String m = URLEncoder.encode("You cannot follow yourself", StandardCharsets.UTF_8);
-                return "redirect:/people?error=" + m;        
-            }
+           
+                followService.setFollow(viewerId, userId, Boolean.TRUE.equals(isFollow));
+             
+              return "redirect:/people";
         } catch (Exception e) {
             // Redirect the user with an error message if there was an error.
             String message = URLEncoder.encode("Failed to (un)follow the user. Please try again.",
