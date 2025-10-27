@@ -51,6 +51,16 @@ create table if not exists post_hashtag (
     foreign key (tag) references hashtag(tag) on delete cascade
 );
 
+-- Create booksmark table
+create table if not exists bookmark (
+    userId int not null,
+    postId int not null,
+    createdAt timestamp default current_timestamp,
+    primary key (userId, postId),
+    foreign key (userId) references user(userId) on delete cascade,
+    foreign key (postId) references post(postId) on delete cascade
+);
+
                             -- Database Data --
 
 -- User Data (password is password for all users)
