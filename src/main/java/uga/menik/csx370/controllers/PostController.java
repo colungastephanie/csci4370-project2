@@ -20,8 +20,10 @@ import org.springframework.web.servlet.ModelAndView;
  
 import uga.menik.csx370.models.ExpandedPost;
 import uga.menik.csx370.services.UserService;
+import uga.menik.csx370.models.User;
 import uga.menik.csx370.utility.Utility;
 import uga.menik.csx370.services.PostService; 
+import uga.menik.csx370.services.BookmarksServices;
 
 /**
  * Handles /post URL and its sub urls.
@@ -31,11 +33,13 @@ import uga.menik.csx370.services.PostService;
 public class PostController {
     private final PostService postService;
     private final UserService userService;
+    private final BookmarksServices bookmarksServices;
 
     @Autowired
-    public PostController(PostService postService, UserService userService) {
+    public PostController(PostService postService, UserService userService, BookmarksServices bookmarksServices) {
         this.postService = postService;
         this.userService = userService;
+        this.bookmarksServices = bookmarksServices;
     }
 
     public ModelAndView composePage(@RequestParam(name = "error", required = false) String error) {
