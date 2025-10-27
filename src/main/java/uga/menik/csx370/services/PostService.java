@@ -93,7 +93,7 @@ public class PostService {
                 SELECT p.postId, p.content, p.createdAt, u.userId, u.firstName, u.lastName
                 FROM post p
                 JOIN user u ON p.userId = u.userId
-                WHERE (? IS NULL OR u.userId IN (
+                WHERE (p.userId = ? OR p.userId IN (
                     SELECT followedUserId FROM follow WHERE followerId = ?
                 ))
                 ORDER BY p.createdAt DESC

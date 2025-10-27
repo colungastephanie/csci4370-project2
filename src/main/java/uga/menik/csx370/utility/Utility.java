@@ -64,7 +64,7 @@ public class Utility {
 
     public static String foramtTime (Timestamp timeStamp) {
         if (timeStamp == null) {
-            return "No posts.";
+            return "-";
         }
         java.time.format.DateTimeFormatter format = DateTimeFormatter.ofPattern("MMM dd, yyyy, hh:mm a");
         return timeStamp.toLocalDateTime().format(format);

@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
-import jakarta.servlet.http.HttpSession;
+
 import uga.menik.csx370.models.FollowableUser;
 import uga.menik.csx370.models.User;
 import uga.menik.csx370.services.FollowService;
@@ -98,7 +98,7 @@ public class PeopleController {
             return "redirect:/people";
         }
         try {
-           
+        
                 followService.setFollow(viewerId, userId, Boolean.TRUE.equals(isFollow));
              
               return "redirect:/people";
