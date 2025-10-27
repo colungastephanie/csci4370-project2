@@ -70,10 +70,34 @@ SELECT
             WHERE U.userId <> ?
             ORDER BY (LP.lastPostAt IS NULL), LP.lastPostAt DESC, U.lastName, U.firstName;
 
+-- Description: Links a user with a bookmarked post, adding it to the bookmarks page
+-- URL path: http://localhost:8081/bookmarks
+Insert ignore into bookmark (userId, postId) values (?, ?)
 
+-- Description: Unlinks a user with a bookmarked post, removing it from the bookmarks page
+-- URL path: http://localhost:8081/bookmarks
+Delete from bookmark where userId = ? and postId = ?
 
+-- Description: Fetches all the bookmarked posts of a specific user. Connected the bookmark
+-- and user table and orders it by the date it was created.
+-- URL path: http://localhost:8081/bookmarks
+SELECT p.postId, p.content, p.createdAt, u.userId, u.firstName, u.lastName
+                FROM post p
+                JOIN bookmark b ON b.postId = p.postId
+                JOIN user u ON u.userId = p.userId
+                WHERE b.userId = ?
+                ORDER BY p.createdAt DESC
 
-
-
+-- Description: Fetches all the posts with a specific hashtag. Includes user input to search for
+-- for the exact hashtag.
+-- URL path: http://localhost:8081/bashtagsearch
+SELECT p.postId, p.content, p.createdAt, u.userId, u.firstName, u.lastName
+                FROM post p
+                JOIN user u ON p.userId = u.userId
+                JOIN post_hashtag ph ON p.postId = ph.postId 
+                WHERE ph.tag IN (%s)
+                GROUP BY p.postId
+                HAVING COUNT(DISTINCT ph.tag) = ?
+                ORDER BY p.createdAt DESC
 
 
