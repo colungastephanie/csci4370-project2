@@ -28,10 +28,12 @@ and hashtags in post_hashtag table
   the people page, and be able to folow/unfollow other users.
   Featues I implemented:
   1. Profile page should allow seeing posts from a specific user
-  - Utillizes 
+  - Utillizes UserService to get all user posts from specified user 
   2. Format timestamps as: Mar 07, 2025, 10:54 PM
+  - Created a format method in Utility class to correctly format the user timestamps
   3. People page should list all users in the platform
   - Utilizes PeopleService, UserService, PostService to fetch all the users on the platform
   - Displays the last time the user posted on the platform; 
   4. Abilitiy to follow/unfollow users 
+  - Utilizes UserService and FollowService to handle follow and unfollow requests 
   
