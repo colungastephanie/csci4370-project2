@@ -1,4 +1,5 @@
 Members and Contributions
+
   Stephanie Colunga: I implemented the end to end workflow that allows authenticated uses to create, view, and search posts
 on the microblogging platform. This implementation also connects the home feed with the database so that users are able to see posts from accounts they follow,
 ordered from newest to oldest.
@@ -21,3 +22,16 @@ and hashtags in post_hashtag table
 - Utilized follow table to determine which users to display
 - Ensured posts appeared from most recent to oldest
 - Tested end to end by following/unfollowing users and verifying the home feed updates correctly
+
+  Joelia Agbavon: I implemented features that allow usrs to view posts their posts on the profile tab, as well as other
+  user on the platform, by clicking on their user icon. I also added the ability to view all users on microblogging platform on 
+  the people page, and be able to folow/unfollow other users.
+  Featues I implemented:
+  1. Profile page should allow seeing posts from a specific user
+  - Utillizes 
+  2. Format timestamps as: Mar 07, 2025, 10:54 PM
+  3. People page should list all users in the platform
+  - Utilizes PeopleService, UserService, PostService to fetch all the users on the platform
+  - Displays the last time the user posted on the platform; 
+  4. Abilitiy to follow/unfollow users 
+  

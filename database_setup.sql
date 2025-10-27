@@ -53,7 +53,7 @@ create table if not exists post_hashtag (
 
                             -- Database Data --
 
--- User Data 
+-- User Data (password is password for all users)
 INSERT INTO `user` (`userId`, `username`, `password`, `firstName`, `lastName`) 
 VALUES (1,'userOne','$2a$10$yFi/0J6Xi2NfFH6bd5M7LuNRkvd2N1lY03MU46Du2b.CV3DTLEiEe','user','one'),
 (2,'userTwo','$2a$10$E/dGpJE0iSzP1xz/.VKrzerEm5NYX3FMWSCj2.mVu9bk3vRL0h1/O','user','two'),
@@ -63,9 +63,9 @@ VALUES (1,'userOne','$2a$10$yFi/0J6Xi2NfFH6bd5M7LuNRkvd2N1lY03MU46Du2b.CV3DTLEiE
 -- Post Data 
 INSERT INTO `post` (`postId`, `userId`, `content`, `createdAt`) 
 VALUES (1,1,'first post!','2025-10-27 01:20:53'),
-(2,1,'hi\r\n','2025-10-27 05:51:38'),
-(3,2,'hey guys!\r\n','2025-10-27 06:06:17'),
-(4,2,'i love database!','2025-10-27 16:51:08'),
+(2,1,'hi #firstpost\r\n','2025-10-27 05:51:38'),
+(3,2,'database is so amazing! #database\r\n','2025-10-27 06:06:17'),
+(4,2,'i love database! #database','2025-10-27 16:51:08'),
 (5,3,'whats up! \r\n','2025-10-27 16:52:03');
 
 -- Follow Data 
