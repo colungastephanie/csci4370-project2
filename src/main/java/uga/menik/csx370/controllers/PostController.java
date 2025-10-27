@@ -151,17 +151,24 @@ public class PostController {
     @GetMapping("/{postId}/bookmark/{isAdd}")
     public String addOrRemoveBookmark(@PathVariable("postId") String postId,
             @PathVariable("isAdd") Boolean isAdd) {
-        System.out.println("The user is attempting add or remove a bookmark:");
-        System.out.println("\tpostId: " + postId);
-        System.out.println("\tisAdd: " + isAdd);
-
         // Redirect the user if the comment adding is a success.
         // return "redirect:/post/" + postId;
+        if (!userService.isAuthenticated()) {
+            return "redirect:/login";
+        }
 
+        try {
+            User user = userService.getLoggedInUser();
+            int userId = Integer.parseInt(user.getUserId());
+
+            bookmarksServices.bookmarkPost(userId, postId, isAdd);
+            return "redirect:/bookmarks";
+        } catch (Exception e) {
         // Redirect the user with an error message if there was an error.
-        String message = URLEncoder.encode("Failed to (un)bookmark the post. Please try again.",
-                StandardCharsets.UTF_8);
-        return "redirect:/post/" + postId + "?error=" + message;
+            String message = URLEncoder.encode("Failed to (un)bookmark the post. Please try again.",
+                    StandardCharsets.UTF_8);
+            return "redirect:/post/" + "?error=" + message;
+        }
     }
 
 }
