@@ -13,7 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
 import uga.menik.csx370.models.Post;
-import uga.menik.csx370.utility.Utility;
+import uga.menik.csx370.models.User;
+import uga.menik.csx370.services.BookmarksServices;
+import uga.menik.csx370.services.UserService;
 
 /**
  * Handles /bookmarks and its sub URLs.
@@ -25,6 +27,14 @@ import uga.menik.csx370.utility.Utility;
 @Controller
 @RequestMapping("/bookmarks")
 public class BookmarksController {
+    private final BookmarksServices bookmarksServices;
+    private final UserService userService;
+
+    @Autowired
+    public BookmarksController(BookmarksServices bookmarksServices, UserService userService) {
+        this.bookmarksServices = bookmarksServices;
+        this.userService = userService;
+    }
 
     /**
      * /bookmarks URL itself is handled by this.
@@ -34,12 +44,26 @@ public class BookmarksController {
         // posts_page is a mustache template from src/main/resources/templates.
         // ModelAndView class enables initializing one and populating placeholders
         // in the template using Java objects assigned to named properties.
-        ModelAndView mv = new ModelAndView("posts_page");
-
+        if (!userService.isAuthenticated()) {
+            return new ModelAndView("redirect:/login");
+        }
         // Following line populates sample data.
         // You should replace it with actual data from the database.
-        List<Post> posts = Utility.createSamplePostsListWithoutComments();
-        mv.addObject("posts", posts);
+        ModelAndView mv = new ModelAndView("posts_page");
+
+        try {
+            User user = userService.getLoggedInUser();
+            int userId= Integer.parseInt(user.getUserId());
+            List<Post> bookmarks = bookmarksServices.getAllBookmarks(userId);
+        
+            mv.addObject("posts", bookmarks);
+
+            if (bookmarks.isEmpty()) {
+                mv.addObject("isNoContent", true);
+            }
+        } catch (Exception e) {
+            mv.addObject("errorMessage", "Failed to load bookmarks.");
+        }
 
         // If an error occured, you can set the following property with the
         // error message to show the error message to the user.
