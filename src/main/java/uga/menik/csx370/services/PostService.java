@@ -114,15 +114,17 @@ public class PostService {
                 while (rs.next()) {
                     String postId = rs.getString("postId");
                     String content = rs.getString("content");
-                    java.sql.Timestamp timeStamp = rs.getTimestamp("createdAt");
-                    String useId = rs.getString("userId");
+                    java.sql.Timestamp ts = rs.getTimestamp("createdAt");
+                    String uid = rs.getString("userId");
                     String firstName = rs.getString("firstName");
                     String lastName = rs.getString("lastName");
 
-                    User user = new User(useId, firstName, lastName);
-                    String postDate = Utility.foramtTime(timeStamp); // note: method name as in your Utility
-                    // counts/toggles on feed are optional; keep zeros/false here (controller can populate as needed)
-                    Post post = new Post(postId, content, postDate, user, 0, 0, false, false);
+                    User user = new User(uid, firstName, lastName);
+                    String postDate = Utility.foramtTime(ts);
+
+                    // NOTE: Post currently requires 10 args (hearts, comments, isHearted, isBookmarked, repostCount, isReposted)
+                    Post post = new Post(postId, content, postDate, user,
+                                         0, 0, false, false, 0, false);
                     posts.add(post);
                 }
             }
@@ -131,8 +133,6 @@ public class PostService {
         }
         return posts;
     }
-
-  
 
     /** Insert a new comment for a post. */
     public void addComment(int userId, int postId, String content) throws SQLException {
@@ -166,15 +166,12 @@ public class PostService {
                     String content = rs.getString("content");
                     java.sql.Timestamp ts = rs.getTimestamp("createdAt");
 
-                    // Build lightweight user for the comment
                     User user = new User(
                             String.valueOf(rs.getInt("userId")),
                             rs.getString("firstName"),
                             rs.getString("lastName"));
 
-                    // Pretty date using your existing helper
                     String commentDate = Utility.foramtTime(ts);
-
                     out.add(new Comment(commentId, content, commentDate, user));
                 }
             }
