@@ -39,9 +39,9 @@ public class PostController {
 
     @Autowired
     public PostController(PostService postService,
-                          UserService userService,
-                          BookmarksServices bookmarksServices,
-                          JdbcTemplate jdbcTemplate) {
+            UserService userService,
+            BookmarksServices bookmarksServices,
+            JdbcTemplate jdbcTemplate) {
         this.postService = postService;
         this.userService = userService;
         this.bookmarksServices = bookmarksServices;
@@ -77,7 +77,7 @@ public class PostController {
     // GET /post/{postId} — single post page with comments
     @GetMapping("/{postId}")
     public ModelAndView webpage(@PathVariable("postId") String postId,
-                                @RequestParam(name = "error", required = false) String error) {
+            @RequestParam(name = "error", required = false) String error) {
         ModelAndView mv = new ModelAndView("posts_page");
 
         Integer currentUserId = userService.isAuthenticated()
@@ -88,19 +88,17 @@ public class PostController {
             int pid = Integer.parseInt(postId);
 
             final String sql = """
-                SELECT p.postId, p.content, p.createdAt,
-                       u.userId, u.username, u.firstName, u.lastName
-                FROM post p
-                JOIN user u ON u.userId = p.userId
-                WHERE p.postId = ?
-            """;
+                        SELECT p.postId, p.content, p.createdAt,
+                               u.userId, u.username, u.firstName, u.lastName
+                        FROM post p
+                        JOIN user u ON u.userId = p.userId
+                        WHERE p.postId = ?
+                    """;
 
-            RowMapper<User> userMapper = (rs, rowNum) ->
-                new User(
+            RowMapper<User> userMapper = (rs, rowNum) -> new User(
                     String.valueOf(rs.getInt("userId")),
                     rs.getString("firstName"),
-                    rs.getString("lastName")
-                );
+                    rs.getString("lastName"));
 
             List<ExpandedPost> onePost = jdbcTemplate.query(sql, (rs, rowNum) -> {
                 Timestamp ts = rs.getTimestamp("createdAt");
@@ -117,16 +115,15 @@ public class PostController {
                         && postService.hasUserBookmarked(currentUserId, rs.getInt("postId"));
 
                 return new ExpandedPost(
-                    String.valueOf(rs.getInt("postId")),
-                    rs.getString("content"),
-                    ldt.format(fmt),
-                    userMapper.mapRow(rs, rowNum),
-                    likesCount,
-                    commentCount,
-                    isLiked,
-                    isBookmarked,
-                    comments
-                );
+                        String.valueOf(rs.getInt("postId")),
+                        rs.getString("content"),
+                        ldt.format(fmt),
+                        userMapper.mapRow(rs, rowNum),
+                        likesCount,
+                        commentCount,
+                        isLiked,
+                        isBookmarked,
+                        comments);
             }, pid);
 
             if (onePost.isEmpty()) {
@@ -149,7 +146,7 @@ public class PostController {
 
     @PostMapping("/{postId}/comment")
     public String postComment(@PathVariable("postId") String postId,
-                              @RequestParam(name = "comment") String comment) {
+            @RequestParam(name = "comment") String comment) {
         if (!userService.isAuthenticated()) {
             String message = URLEncoder.encode("You must be logged in to comment.",
                     StandardCharsets.UTF_8);
@@ -176,25 +173,68 @@ public class PostController {
 
     @GetMapping("/{postId}/heart/{isAdd}")
     public String addOrRemoveHeart(@PathVariable("postId") String postId,
-                                   @PathVariable("isAdd") Boolean isAdd) {
-        String message = URLEncoder.encode("Failed to (un)like the post. Please try again.",
-                StandardCharsets.UTF_8);
-        return "redirect:/post/" + postId + "?error=" + message;
-    }
-
-    @GetMapping("/{postId}/bookmark/{isAdd}")
-    public String addOrRemoveBookmark(@PathVariable("postId") String postId,
-                                      @PathVariable("isAdd") Boolean isAdd) {
+            @PathVariable("isAdd") Boolean isAdd) {
         if (!userService.isAuthenticated()) {
             return "redirect:/login";
         }
         try {
             User user = userService.getLoggedInUser();
             int userId = Integer.parseInt(user.getUserId());
-            bookmarksServices.bookmarkPost(userId, postId, isAdd);
-            return "redirect:/bookmarks";
+            int pid = Integer.parseInt(postId);
+
+            // Toggle the like
+            postService.toggleLike(userId, pid);
+
+            return "redirect:/post/" + postId;
         } catch (Exception e) {
+            e.printStackTrace();
+            String message = URLEncoder.encode("Failed to (un)like the post. Please try again.",
+                    StandardCharsets.UTF_8);
+            return "redirect:/post/" + postId + "?error=" + message;
+        }
+    }
+
+    @GetMapping("/{postId}/bookmark/{isAdd}")
+    public String addOrRemoveBookmark(@PathVariable("postId") String postId,
+            @PathVariable("isAdd") Boolean isAdd) {
+        if (!userService.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        try {
+            User user = userService.getLoggedInUser();
+            int userId = Integer.parseInt(user.getUserId());
+            int pid = Integer.parseInt(postId);
+
+            // Toggle the bookmark
+            postService.toggleBookmark(userId, pid);
+
+            return "redirect:/post/" + postId;
+        } catch (Exception e) {
+            e.printStackTrace();
             String message = URLEncoder.encode("Failed to (un)bookmark the post. Please try again.",
+                    StandardCharsets.UTF_8);
+            return "redirect:/post/" + postId + "?error=" + message;
+        }
+    }
+
+    @GetMapping("/{postId}/repost/{isAdd}")
+    public String addOrRemoveRepost(@PathVariable("postId") String postId,
+            @PathVariable("isAdd") Boolean isAdd) {
+        if (!userService.isAuthenticated()) {
+            return "redirect:/login";
+        }
+        try {
+            User user = userService.getLoggedInUser();
+            int userId = Integer.parseInt(user.getUserId());
+            int pid = Integer.parseInt(postId);
+
+            // Toggle the repost
+            postService.toggleRepost(userId, pid);
+
+            return "redirect:/post/" + postId;
+        } catch (Exception e) {
+            e.printStackTrace();
+            String message = URLEncoder.encode("Failed to (un)repost the post. Please try again.",
                     StandardCharsets.UTF_8);
             return "redirect:/post/" + postId + "?error=" + message;
         }

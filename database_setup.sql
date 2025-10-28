@@ -111,6 +111,23 @@ CREATE TABLE IF NOT EXISTS likes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ===========================================
+-- REPOST TABLE
+-- ===========================================
+CREATE TABLE IF NOT EXISTS repost (
+    repostId       INT AUTO_INCREMENT PRIMARY KEY,
+    userId         INT NOT NULL,           -- who is reposting
+    originalPostId INT NOT NULL,           -- which post they're sharing
+    createdAt      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_repost_user FOREIGN KEY (userId) 
+        REFERENCES `user`(userId) ON DELETE CASCADE,
+    CONSTRAINT fk_repost_post FOREIGN KEY (originalPostId) 
+        REFERENCES post(postId) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_post (userId, originalPostId),
+    INDEX idx_repost_user (userId),
+    INDEX idx_repost_original (originalPostId)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ===========================================
 -- SEED DATA
 -- ===========================================
 
@@ -138,3 +155,49 @@ INSERT INTO post (postId, userId, content, createdAt) VALUES
 (4,2,'i love database! #database','2025-10-27 16:51:08'),
 (5,3,'whats up!','2025-10-27 16:52:03')
 ON DUPLICATE KEY UPDATE content = VALUES(content), createdAt = VALUES(createdAt);
+
+-- Hashtags
+INSERT INTO hashtag (tag) VALUES
+('#firstpost'),
+('#database')
+ON DUPLICATE KEY UPDATE tag = VALUES(tag);
+
+-- Post-Hashtag relationships
+INSERT INTO post_hashtag (postId, tag) VALUES
+(2, '#firstpost'),
+(3, '#database'),
+(4, '#database')
+ON DUPLICATE KEY UPDATE postId = VALUES(postId);
+
+-- Sample Likes
+INSERT INTO likes (userId, postId, createdAt) VALUES
+(1, 3, '2025-10-27 06:07:00'),
+(1, 4, '2025-10-27 16:52:00'),
+(2, 1, '2025-10-27 05:52:00'),
+(2, 2, '2025-10-27 06:00:00'),
+(3, 3, '2025-10-27 17:00:00'),
+(3, 4, '2025-10-27 17:01:00')
+ON DUPLICATE KEY UPDATE createdAt = VALUES(createdAt);
+
+-- Sample Bookmarks
+INSERT INTO bookmark (userId, postId, createdAt) VALUES
+(1, 3, '2025-10-27 06:08:00'),
+(1, 4, '2025-10-27 16:53:00'),
+(2, 2, '2025-10-27 06:10:00'),
+(3, 1, '2025-10-27 17:05:00')
+ON DUPLICATE KEY UPDATE createdAt = VALUES(createdAt);
+
+-- Sample Comments
+INSERT INTO comments (commentId, postId, userId, content, createdAt) VALUES
+(1, 3, 1, 'I agree! Databases are awesome!', '2025-10-27 06:07:30'),
+(2, 3, 3, 'Learning so much!', '2025-10-27 16:55:00'),
+(3, 2, 2, 'Welcome to the platform!', '2025-10-27 06:05:00'),
+(4, 4, 1, 'Me too!', '2025-10-27 17:00:00'),
+(5, 1, 2, 'Congrats on your first post!', '2025-10-27 05:53:00')
+ON DUPLICATE KEY UPDATE content = VALUES(content), createdAt = VALUES(createdAt);
+
+-- Sample repost 
+INSERT INTO repost (repostId, userId, originalPostId, createdAt) VALUES
+(1, 1, 3, '2025-10-27 06:09:00'),
+(2, 3, 2, '2025-10-27 17:10:00')
+ON DUPLICATE KEY UPDATE createdAt = VALUES(createdAt);

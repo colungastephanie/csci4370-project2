@@ -16,12 +16,12 @@
             <!-- Likes / Hearts -->
             {{#isHearted}}
             <form method="get" action="/post/{{postId}}/heart/false">
-                <button class="fa fa-heart"></button>
+                <button type="submit" class="fa fa-heart" style="color:red;"></button>
             </form>
             {{/isHearted}}
             {{^isHearted}}
             <form method="get" action="/post/{{postId}}/heart/true">
-                <button class="far fa-heart"></button>
+                <button type="submit" class="fa fa-heart"></button>
             </form>
             {{/isHearted}}
             <span class="action-count">{{heartsCount}}</span>
