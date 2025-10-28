@@ -35,5 +35,14 @@ and hashtags in post_hashtag table
   - Utilizes PeopleService, UserService, PostService to fetch all the users on the platform
   - Displays the last time the user posted on the platform; 
   4. Abilitiy to follow/unfollow users 
-  - Utilizes UserService and FollowService to handle follow and unfollow requests 
+  - Utilizes UserService and FollowService to handle follow and unfollow requests
+
+My Phuong Ly: I implemented the post interaction features for the microblogging platform, including liking, bookmarking, and commenting on posts. My work follows the project requirement to include a new UI part, a controller, a service, and database operations for each feature
+  Featues I implemented:
+  1. Like posts
+  - Users can like/unlike posts; updated database and UI to reflect current like count
+  2. Bookmark posts
+  - Users can bookmark/unbookmark posts; database and UI updated accordingly
+  3. Comments: 
+  - Users can add comments; comments displayed oldest to newest; database operations handle storing and retrieving comments
   
