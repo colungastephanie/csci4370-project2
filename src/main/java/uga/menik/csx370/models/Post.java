@@ -58,7 +58,10 @@ public class Post extends BasicPost {
      * @param isHearted      whether the post is hearted by the current user
      * @param isBookmarked   whether the post is bookmarked by the current user
      */
-    public Post(String postId, String content, String postDate, User user, int heartsCount, int commentsCount, boolean isHearted, boolean isBookmarked, int repostCount, boolean isReposted) {
+    public Post(String postId, String content, String postDate, User user,
+                int heartsCount, int commentsCount,
+                boolean isHearted, boolean isBookmarked,
+                int repostCount, boolean isReposted) {
         super(postId, content, postDate, user);
         this.heartsCount = heartsCount;
         this.commentsCount = commentsCount;
@@ -67,6 +70,19 @@ public class Post extends BasicPost {
         this.isShowComents = false;
         this.repostCount = repostCount;
         this.isReposted = isReposted;
+    }
+
+    /**
+     * Convenience constructor without repost information.
+     * Defaults repostCount = 0 and isReposted = false.
+     */
+    public Post(String postId, String content, String postDate,
+                User user, int heartsCount, int commentsCount,
+                boolean isHearted, boolean isBookmarked) {
+        this(postId, content, postDate, user,
+             heartsCount, commentsCount,
+             isHearted, isBookmarked,
+             0, false); // default values
     }
 
     /**

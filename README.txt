@@ -56,3 +56,19 @@ Features I implemented:
 2. Hashtag Search
 - User can type in one or more hashtags into the search field (ie: #2025 #fireworks)
 - The results should show posts that have all hashtags with the most recent posts first
+
+Mohammed Nizar Meskine: I implemented the post detail page and backend features that allow users to comment on posts, view engagement counts (likes and comments), and see properly formatted post timestamps. I also connected these features to the database and integrated bookmark functionality for posts.
+ 1.	Post Page and Commenting
+- Implemented the /post/{postId} route in PostController to display a full post with all associated comments.
+- Added form handling logic that allows authenticated users to submit new comments through the interface.
+- Integrated PostService.addComment() to insert new comments into the database and display them in chronological order.
+- Ensured empty comments are not allowed and errors are displayed gracefully.
+	2.	Display of Like and Comment Counts
+- Added backend logic to fetch like and comment totals for each post using getLikesCount() and getCommentCount() methods in PostService.
+- Connected these counts to the user interface so that each post dynamically displays its current engagement metrics.
+	3.	Post Date Formatting
+- Used Java’s DateTimeFormatter to display post creation dates in the format: Mar 07, 2025, 10:54 PM
+- Applied the same formatting for comment timestamps to maintain consistency.
+	4.	Bookmark Integration
+- Connected the bookmark toggle to BookmarksServices, allowing users to bookmark or unbookmark posts.
+- Verified that the database and UI stay synchronized when bookmarks are added or removed.

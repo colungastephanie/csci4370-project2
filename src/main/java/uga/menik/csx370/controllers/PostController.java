@@ -147,7 +147,6 @@ public class PostController {
         }
     }
 
-    // POST /post/{postId}/comment — add a new comment
     @PostMapping("/{postId}/comment")
     public String postComment(@PathVariable("postId") String postId,
                               @RequestParam(name = "comment") String comment) {
@@ -175,7 +174,6 @@ public class PostController {
         }
     }
 
-    // GET /post/{postId}/heart/{isAdd} — (optional; not required by your scope)
     @GetMapping("/{postId}/heart/{isAdd}")
     public String addOrRemoveHeart(@PathVariable("postId") String postId,
                                    @PathVariable("isAdd") Boolean isAdd) {
@@ -184,7 +182,6 @@ public class PostController {
         return "redirect:/post/" + postId + "?error=" + message;
     }
 
-    // GET /post/{postId}/bookmark/{isAdd} — uses your existing BookmarksServices
     @GetMapping("/{postId}/bookmark/{isAdd}")
     public String addOrRemoveBookmark(@PathVariable("postId") String postId,
                                       @PathVariable("isAdd") Boolean isAdd) {

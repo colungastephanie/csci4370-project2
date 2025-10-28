@@ -1,12 +1,11 @@
-<<<<<<< Updated upstream
 package uga.menik.csx370.services;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -17,6 +16,8 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import uga.menik.csx370.models.Comment;
 import uga.menik.csx370.models.Post;
 import uga.menik.csx370.models.User;
 import uga.menik.csx370.utility.Utility;
@@ -27,8 +28,8 @@ public class PostService {
     private static final Pattern HASHTAG = Pattern.compile("#(\\w{1,64})");
 
     @Autowired
-    public PostService(DataSource ds) { 
-        this.ds = ds; 
+    public PostService(DataSource ds) {
+        this.ds = ds;
     }
 
     public static List<String> extractTags(String content) {
@@ -46,36 +47,36 @@ public class PostService {
             try {
                 int postId;
                 try (PreparedStatement ps = c.prepareStatement(
-                    "Insert into post (userId, content) values (?, ?)",
-                    Statement.RETURN_GENERATED_KEYS)) {
-                        ps.setInt(1, userId);
-                        ps.setString(2, content);
-                        ps.executeUpdate();
-                        try (ResultSet keys = ps.getGeneratedKeys()) {
-                            keys.next();
-                            postId = keys.getInt(1);
-                        }
+                        "INSERT INTO post (userId, content) VALUES (?, ?)",
+                        Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setInt(1, userId);
+                    ps.setString(2, content);
+                    ps.executeUpdate();
+                    try (ResultSet keys = ps.getGeneratedKeys()) {
+                        keys.next();
+                        postId = keys.getInt(1);
                     }
+                }
+
                 List<String> tags = extractTags(content);
                 if (!tags.isEmpty()) {
                     try (PreparedStatement insTag = c.prepareStatement(
-                        "Insert ignore into hashtag(tag) values (?)");
-                        PreparedStatement link = c.prepareStatement(
-                            "Insert ignore into post_hashtag(postId, tag) values (?, ?)")) {
-                                for (String t : tags) {
-                                    insTag.setString(1, t);
-                                    insTag.addBatch();
+                             "INSERT IGNORE INTO hashtag(tag) VALUES (?)");
+                         PreparedStatement link = c.prepareStatement(
+                             "INSERT IGNORE INTO post_hashtag(postId, tag) VALUES (?, ?)")) {
+                        for (String t : tags) {
+                            insTag.setString(1, t);
+                            insTag.addBatch();
 
-                                    link.setInt(1, postId);
-                                    link.setString(2, t);
-                                    link.addBatch();
-                                }
-                                insTag.executeBatch();
-                                link.executeBatch();
-                            }
-                        
-                    
+                            link.setInt(1, postId);
+                            link.setString(2, t);
+                            link.addBatch();
+                        }
+                        insTag.executeBatch();
+                        link.executeBatch();
+                    }
                 }
+
                 c.commit();
                 return postId;
             } catch (Exception e) {
@@ -91,7 +92,8 @@ public class PostService {
         List<Post> posts = new ArrayList<>();
 
         final String sql = """
-                SELECT p.postId, p.content, p.createdAt, u.userId, u.firstName, u.lastName
+                SELECT p.postId, p.content, p.createdAt,
+                       u.userId, u.firstName, u.lastName
                 FROM post p
                 JOIN user u ON p.userId = u.userId
                 WHERE (p.userId = ? OR p.userId IN (
@@ -100,7 +102,7 @@ public class PostService {
                 ORDER BY p.createdAt DESC
                 """;
         try (Connection conn = ds.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             if (userId == null) {
                 ps.setNull(1, Types.INTEGER);
                 ps.setNull(2, Types.INTEGER);
@@ -118,7 +120,8 @@ public class PostService {
                     String lastName = rs.getString("lastName");
 
                     User user = new User(useId, firstName, lastName);
-                    String postDate = Utility.foramtTime(timeStamp);
+                    String postDate = Utility.foramtTime(timeStamp); // note: method name as in your Utility
+                    // counts/toggles on feed are optional; keep zeros/false here (controller can populate as needed)
                     Post post = new Post(postId, content, postDate, user, 0, 0, false, false);
                     posts.add(post);
                 }
@@ -129,164 +132,115 @@ public class PostService {
         return posts;
     }
 
-}
-=======
-package uga.menik.csx370.services;
+  
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Service;
-import uga.menik.csx370.models.Comment; 
-import uga.menik.csx370.models.User;
-
-import java.util.List;
-
-@Service
-public class PostService {
-    
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-    
-    // LIKES FEATURE
-    public void toggleLike(int userId, int postId) {
-        if (hasUserLikedPost(userId, postId)) {
-            removeLike(userId, postId);
-        } else {
-            addLike(userId, postId);
+    /** Insert a new comment for a post. */
+    public void addComment(int userId, int postId, String content) throws SQLException {
+        final String sql = "INSERT INTO comments (postId, userId, content) VALUES (?, ?, ?)";
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, postId);
+            ps.setInt(2, userId);
+            ps.setString(3, content);
+            ps.executeUpdate();
         }
     }
-    
-    // Add a like to a post
-    private void addLike(int userId, int postId) {
-        String sql = "INSERT INTO likes (userId, postId) VALUES (?, ?)";
-        jdbcTemplate.update(sql, userId, postId);
-    }
-    
-    // Remove a like from a post
-    private void removeLike(int userId, int postId) {
-        String sql = "DELETE FROM likes WHERE userId = ? AND postId = ?";
-        jdbcTemplate.update(sql, userId, postId);
-    }
-    
-    // Check if user has liked a post
-    public boolean hasUserLikedPost(int userId, int postId) {
-        String sql = "SELECT COUNT(*) FROM likes WHERE userId = ? AND postId = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, postId);
-        return count != null && count > 0;
-    }
-    
-    // Get total likes count for a post
-    public int getLikesCount(int postId) {
-        String sql = "SELECT COUNT(*) FROM likes WHERE postId = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, postId);
-        return count != null ? count : 0;
-    }
-    
-    // BOOKMARKS FEATURE
-    public void toggleBookmark(int userId, int postId) {
-        if (hasUserBookmarked(userId, postId)) {
-            removeBookmark(userId, postId);
-        } else {
-            addBookmark(userId, postId);
-        }
-    }
-    
-    // Add a bookmark
-    private void addBookmark(int userId, int postId) {
-        String sql = "INSERT INTO bookmarks (userId, postId) VALUES (?, ?)";
-        jdbcTemplate.update(sql, userId, postId);
-    }
-    
-    // Remove a bookmark
-    private void removeBookmark(int userId, int postId) {
-        String sql = "DELETE FROM bookmarks WHERE userId = ? AND postId = ?";
-        jdbcTemplate.update(sql, userId, postId);
-    }
-    
-    // Check if user has bookmarked a post
-    public boolean hasUserBookmarked(int userId, int postId) {
-        String sql = "SELECT COUNT(*) FROM bookmarks WHERE userId = ? AND postId = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, postId);
-        return count != null && count > 0;
-    }
-    
-    // COMMENTS FEATURE
+
+    /** Return all comments for a post (oldest -> newest). */
     public List<Comment> getCommentsByPostId(int postId) {
-        String sql = "SELECT c.commentId, c.postId, c.userId, c.content, c.createdAt, " +
-                    "u.username, u.firstName, u.lastName " +
-                    "FROM comments c " +
-                    "JOIN user u ON c.userId = u.userId " +
-                    "WHERE c.postId = ? " +
-                    "ORDER BY c.createdAt ASC";
-        
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            // Create User object
-            User user = new User(
-                String.valueOf(rs.getInt("userId")),
-                rs.getString("firstName"),
-                rs.getString("lastName")
-            );
+        final String sql = """
+                SELECT c.commentId, c.postId, c.userId, c.content, c.createdAt,
+                       u.firstName, u.lastName
+                FROM comments c
+                JOIN user u ON u.userId = c.userId
+                WHERE c.postId = ?
+                ORDER BY c.createdAt ASC
+                """;
+        List<Comment> out = new ArrayList<>();
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, postId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    String commentId = String.valueOf(rs.getInt("commentId"));
+                    String content = rs.getString("content");
+                    java.sql.Timestamp ts = rs.getTimestamp("createdAt");
 
-            // Create Comment using constructor
-            return new Comment(
-                String.valueOf(rs.getInt("commentId")),
-                rs.getString("content"),
-                rs.getTimestamp("createdAt").toString(),
-                user
-            );
-        }, postId);
-    }
-    
-    public void addComment(int userId, int postId, String content) {
-        // Validate comment is not empty
-        if (content == null || content.trim().isEmpty()) {
-            throw new IllegalArgumentException("Comment cannot be empty");
+                    // Build lightweight user for the comment
+                    User user = new User(
+                            String.valueOf(rs.getInt("userId")),
+                            rs.getString("firstName"),
+                            rs.getString("lastName"));
+
+                    // Pretty date using your existing helper
+                    String commentDate = Utility.foramtTime(ts);
+
+                    out.add(new Comment(commentId, content, commentDate, user));
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("error getting comments for postId=" + postId, e);
         }
-        
-        String sql = "INSERT INTO comments (userId, postId, content) VALUES (?, ?, ?)";
-        jdbcTemplate.update(sql, userId, postId, content);
+        return out;
     }
-    
-    // Get comment count for a post
+
+    /** Count comments for a post. */
     public int getCommentCount(int postId) {
-        String sql = "SELECT COUNT(*) FROM comments WHERE postId = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, postId);
-        return count != null ? count : 0;
+        final String sql = "SELECT COUNT(*) AS cnt FROM comments WHERE postId = ?";
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, postId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("cnt");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("error counting comments for postId=" + postId, e);
+        }
+        return 0;
     }
-    
-    // REPOSTS FEATURE
-    public void toggleRepost(int userId, int postId) {
-        if (hasUserReposted(userId, postId)) {
-            removeRepost(userId, postId);
-        } else {
-            addRepost(userId, postId);
+
+    /** Count likes/hearts for a post. */
+    public int getLikesCount(int postId) {
+        final String sql = "SELECT COUNT(*) AS cnt FROM likes WHERE postId = ?";
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, postId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt("cnt");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("error counting likes for postId=" + postId, e);
+        }
+        return 0;
+    }
+
+    /** Did this user like this post? */
+    public boolean hasUserLikedPost(int userId, int postId) {
+        final String sql = "SELECT 1 FROM likes WHERE userId = ? AND postId = ? LIMIT 1";
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, postId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("error checking like state userId=" + userId + " postId=" + postId, e);
         }
     }
-    
-    // Add a repost
-    private void addRepost(int userId, int originalPostId) {
-        String sql = "INSERT INTO repost (userId, originalPostId) VALUES (?, ?)";
-        jdbcTemplate.update(sql, userId, originalPostId);
-    }
-    
-    // Remove a repost
-    private void removeRepost(int userId, int originalPostId) {
-        String sql = "DELETE FROM repost WHERE userId = ? AND originalPostId = ?";
-        jdbcTemplate.update(sql, userId, originalPostId);
-    }
-    
-    // Check if user has reposted
-    public boolean hasUserReposted(int userId, int originalPostId) {
-        String sql = "SELECT COUNT(*) FROM repost WHERE userId = ? AND originalPostId = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, originalPostId);
-        return count != null && count > 0;
-    }
-    
-    // Get repost count for a post
-    public int getRepostCount(int postId) {
-        String sql = "SELECT COUNT(*) FROM repost WHERE originalPostId = ?";
-        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, postId);
-        return count != null ? count : 0;
+
+    /** Did this user bookmark this post? */
+    public boolean hasUserBookmarked(int userId, int postId) {
+        final String sql = "SELECT 1 FROM bookmark WHERE userId = ? AND postId = ? LIMIT 1";
+        try (Connection conn = ds.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            ps.setInt(2, postId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException("error checking bookmark state userId=" + userId + " postId=" + postId, e);
+        }
     }
 }
->>>>>>> Stashed changes
