@@ -67,7 +67,7 @@ public class HashtagService {
 
                         User user = new User(useId, firstName, lastName);
                         String postDate = Utility.foramtTime(timeStamp);
-                        Post post = new Post(postId, content, postDate, user, 0, 0, false, false);
+                        Post post = new Post(postId, content, postDate, user, 0, 0, false, false, i, false);
                         posts.add(post);
                     }
                 }

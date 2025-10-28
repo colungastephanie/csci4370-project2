@@ -120,7 +120,7 @@ public class ProfileController {
                             rs.getString("content"),
                             date, 
                             user, 
-                            0, 0, false, false
+                            0, 0, false, false, 0, false
                         );
                         out.add(post);
                     } //while

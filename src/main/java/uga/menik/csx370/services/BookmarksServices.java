@@ -75,7 +75,7 @@ public class BookmarksServices {
 
                     User user = new User(useId, firstName, lastName);
                     String postDate = Utility.foramtTime(timeStamp);
-                    Post bookmark = new Post(postId, content, postDate, user, 0, 0, false, true);
+                    Post bookmark = new Post(postId, content, postDate, user, 0, 0, false, true, 0, false);
                     bookmarks.add(bookmark);
                 }
             }
