@@ -32,6 +32,16 @@ public class Post extends BasicPost {
     private final boolean isBookmarked;
 
     /**
+     * The number of reposts the post has received.
+     */
+    private final int repostCount;
+    
+    /**
+     * Flag indicating whether the post is reposted by the current user.
+     */
+    private final boolean isReposted;
+
+    /**
      * Flag to specify whether to show comments or not.
      */
     protected boolean isShowComents;
@@ -48,13 +58,15 @@ public class Post extends BasicPost {
      * @param isHearted      whether the post is hearted by the current user
      * @param isBookmarked   whether the post is bookmarked by the current user
      */
-    public Post(String postId, String content, String postDate, User user, int heartsCount, int commentsCount, boolean isHearted, boolean isBookmarked) {
+    public Post(String postId, String content, String postDate, User user, int heartsCount, int commentsCount, boolean isHearted, boolean isBookmarked, int repostCount, boolean isReposted) {
         super(postId, content, postDate, user);
         this.heartsCount = heartsCount;
         this.commentsCount = commentsCount;
         this.isHearted = isHearted;
         this.isBookmarked = isBookmarked;
         this.isShowComents = false;
+        this.repostCount = repostCount;
+        this.isReposted = isReposted;
     }
 
     /**
@@ -91,5 +103,23 @@ public class Post extends BasicPost {
      */
     public boolean isBookmarked() {
         return isBookmarked;
+    }
+
+    /**
+     * Returns the number of reposts the post has received.
+     *
+     * @return the number of reposts
+     */
+    public int getRepostCount() {
+        return repostCount;
+    }
+
+    /**
+     * Returns whether the post is reposted by the current user.
+     *
+     * @return true if the post is reposted, false otherwise
+     */
+    public boolean isReposted() {
+        return isReposted;
     }
 }

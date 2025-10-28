@@ -84,10 +84,69 @@ public class PostController {
         // See notes on ModelAndView in BookmarksController.java.
         ModelAndView mv = new ModelAndView("posts_page");
 
+<<<<<<< Updated upstream
         // Following line populates sample data.
         // You should replace it with actual data from the database.
         List<ExpandedPost> posts = Utility.createSampleExpandedPostWithComments();
         mv.addObject("posts", posts);
+=======
+        try {
+            int postIdInt = Integer.parseInt(postId);
+
+            // Get the post with all details from database
+            String sql = "SELECT p.postId, p.userId, p.content, p.createdAt, " +
+                    "u.username, u.firstName, u.lastName " +
+                    "FROM post p " +
+                    "JOIN user u ON p.userId = u.userId " +
+                    "WHERE p.postId = ?";
+
+            List<ExpandedPost> posts = jdbcTemplate.query(sql, (rs, rowNum) -> {
+                // Create User object
+                User user = new User(
+                        String.valueOf(rs.getInt("userId")),
+                        rs.getString("username"),
+                        rs.getString("firstName"),
+                        rs.getString("lastName"));
+
+                // Get comments for this post (ordered oldest to latest)
+                List<Comment> comments = postService.getCommentsByPostId(rs.getInt("postId"));
+
+                // Get counts and user interaction status
+                int likesCount = postService.getLikesCount(rs.getInt("postId"));
+                int commentCount = postService.getCommentCount(rs.getInt("postId"));
+                boolean isLiked = (userId != null) ? postService.hasUserLikedPost(userId, rs.getInt("postId")) : false;
+                boolean isBookmarked = (userId != null) ? postService.hasUserBookmarked(userId, rs.getInt("postId"))
+                        : false;
+
+                // Create ExpandedPost using the constructor
+                return new ExpandedPost(
+                        String.valueOf(rs.getInt("postId")),
+                        rs.getString("content"),
+                        rs.getTimestamp("createdAt").toString(),
+                        user,
+                        likesCount,
+                        commentCount,
+                        isLiked,
+                        isBookmarked,
+                        postService.getRepostCount(rs.getInt("postId")),
+                        postService.hasUserReposted(userId, rs.getInt("postId")),
+                        comments);
+            }, postIdInt);
+
+            if (posts.isEmpty()) {
+                mv.addObject("isNoContent", true);
+                mv.addObject("errorMessage", "Post not found");
+            } else {
+                mv.addObject("posts", posts);
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error loading post: " + e.getMessage());
+            e.printStackTrace();
+            mv.addObject("isNoContent", true);
+            mv.addObject("errorMessage", "Failed to load post");
+        }
+>>>>>>> Stashed changes
 
         // If an error occured, you can set the following property with the
         // error message to show the error message to the user.

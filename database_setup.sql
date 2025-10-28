@@ -45,10 +45,10 @@ create table if not exists hashtag (
 -- Create post and hashtag table
 create table if not exists post_hashtag (
     postId int not null,
-    tag varchar(64) not null,
-    primary key (postId, tag),
+    hashtagId int not null,  -- Changed from 'tag' to 'hashtagId'
+    primary key (postId, hashtagId),
     foreign key (postId) references post(postId) on delete cascade,
-    foreign key (tag) references hashtag(tag) on delete cascade
+    foreign key (hashtagId) references hashtag(hashtagId) on delete cascade  
 );
 
 -- Create booksmark table

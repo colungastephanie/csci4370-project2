@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 package uga.menik.csx370.services;
 
 import java.sql.Connection;
@@ -129,3 +130,163 @@ public class PostService {
     }
 
 }
+=======
+package uga.menik.csx370.services;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import uga.menik.csx370.models.Comment; 
+import uga.menik.csx370.models.User;
+
+import java.util.List;
+
+@Service
+public class PostService {
+    
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+    
+    // LIKES FEATURE
+    public void toggleLike(int userId, int postId) {
+        if (hasUserLikedPost(userId, postId)) {
+            removeLike(userId, postId);
+        } else {
+            addLike(userId, postId);
+        }
+    }
+    
+    // Add a like to a post
+    private void addLike(int userId, int postId) {
+        String sql = "INSERT INTO likes (userId, postId) VALUES (?, ?)";
+        jdbcTemplate.update(sql, userId, postId);
+    }
+    
+    // Remove a like from a post
+    private void removeLike(int userId, int postId) {
+        String sql = "DELETE FROM likes WHERE userId = ? AND postId = ?";
+        jdbcTemplate.update(sql, userId, postId);
+    }
+    
+    // Check if user has liked a post
+    public boolean hasUserLikedPost(int userId, int postId) {
+        String sql = "SELECT COUNT(*) FROM likes WHERE userId = ? AND postId = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, postId);
+        return count != null && count > 0;
+    }
+    
+    // Get total likes count for a post
+    public int getLikesCount(int postId) {
+        String sql = "SELECT COUNT(*) FROM likes WHERE postId = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, postId);
+        return count != null ? count : 0;
+    }
+    
+    // BOOKMARKS FEATURE
+    public void toggleBookmark(int userId, int postId) {
+        if (hasUserBookmarked(userId, postId)) {
+            removeBookmark(userId, postId);
+        } else {
+            addBookmark(userId, postId);
+        }
+    }
+    
+    // Add a bookmark
+    private void addBookmark(int userId, int postId) {
+        String sql = "INSERT INTO bookmarks (userId, postId) VALUES (?, ?)";
+        jdbcTemplate.update(sql, userId, postId);
+    }
+    
+    // Remove a bookmark
+    private void removeBookmark(int userId, int postId) {
+        String sql = "DELETE FROM bookmarks WHERE userId = ? AND postId = ?";
+        jdbcTemplate.update(sql, userId, postId);
+    }
+    
+    // Check if user has bookmarked a post
+    public boolean hasUserBookmarked(int userId, int postId) {
+        String sql = "SELECT COUNT(*) FROM bookmarks WHERE userId = ? AND postId = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, postId);
+        return count != null && count > 0;
+    }
+    
+    // COMMENTS FEATURE
+    public List<Comment> getCommentsByPostId(int postId) {
+        String sql = "SELECT c.commentId, c.postId, c.userId, c.content, c.createdAt, " +
+                    "u.username, u.firstName, u.lastName " +
+                    "FROM comments c " +
+                    "JOIN user u ON c.userId = u.userId " +
+                    "WHERE c.postId = ? " +
+                    "ORDER BY c.createdAt ASC";
+        
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            // Create User object
+            User user = new User(
+                String.valueOf(rs.getInt("userId")),
+                rs.getString("firstName"),
+                rs.getString("lastName")
+            );
+
+            // Create Comment using constructor
+            return new Comment(
+                String.valueOf(rs.getInt("commentId")),
+                rs.getString("content"),
+                rs.getTimestamp("createdAt").toString(),
+                user
+            );
+        }, postId);
+    }
+    
+    public void addComment(int userId, int postId, String content) {
+        // Validate comment is not empty
+        if (content == null || content.trim().isEmpty()) {
+            throw new IllegalArgumentException("Comment cannot be empty");
+        }
+        
+        String sql = "INSERT INTO comments (userId, postId, content) VALUES (?, ?, ?)";
+        jdbcTemplate.update(sql, userId, postId, content);
+    }
+    
+    // Get comment count for a post
+    public int getCommentCount(int postId) {
+        String sql = "SELECT COUNT(*) FROM comments WHERE postId = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, postId);
+        return count != null ? count : 0;
+    }
+    
+    // REPOSTS FEATURE
+    public void toggleRepost(int userId, int postId) {
+        if (hasUserReposted(userId, postId)) {
+            removeRepost(userId, postId);
+        } else {
+            addRepost(userId, postId);
+        }
+    }
+    
+    // Add a repost
+    private void addRepost(int userId, int originalPostId) {
+        String sql = "INSERT INTO repost (userId, originalPostId) VALUES (?, ?)";
+        jdbcTemplate.update(sql, userId, originalPostId);
+    }
+    
+    // Remove a repost
+    private void removeRepost(int userId, int originalPostId) {
+        String sql = "DELETE FROM repost WHERE userId = ? AND originalPostId = ?";
+        jdbcTemplate.update(sql, userId, originalPostId);
+    }
+    
+    // Check if user has reposted
+    public boolean hasUserReposted(int userId, int originalPostId) {
+        String sql = "SELECT COUNT(*) FROM repost WHERE userId = ? AND originalPostId = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, userId, originalPostId);
+        return count != null && count > 0;
+    }
+    
+    // Get repost count for a post
+    public int getRepostCount(int postId) {
+        String sql = "SELECT COUNT(*) FROM repost WHERE originalPostId = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, postId);
+        return count != null ? count : 0;
+    }
+}
+>>>>>>> Stashed changes

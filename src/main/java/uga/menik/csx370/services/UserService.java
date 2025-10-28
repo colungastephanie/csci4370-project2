@@ -11,6 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import javax.sql.DataSource;
+import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -36,6 +37,9 @@ public class UserService {
     private final BCryptPasswordEncoder passwordEncoder;
     // This holds 
     private User loggedInUser = null;
+
+    @Autowired
+    private HttpSession session;
 
     /**
      * See AuthInterceptor notes regarding dependency injection and
@@ -77,6 +81,7 @@ public class UserService {
 
                         // Initialize and retain the logged in user.
                         loggedInUser = new User(userId, firstName, lastName);
+                        session.setAttribute("userId", Integer.parseInt(userId));
                     }
                     return isPassMatch;
                 }

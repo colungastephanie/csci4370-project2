@@ -31,8 +31,8 @@ public class ExpandedPost extends Post {
      * @param isBookmarked  indicates whether the post is bookmarked by the current user
      * @param comments      the list of comments made on the post
      */
-    public ExpandedPost(String postId, String content, String postDate, User user, int heartsCount, int commentsCount, boolean isHearted, boolean isBookmarked, List<Comment> comments) {
-        super(postId, content, postDate, user, heartsCount, commentsCount, isHearted, isBookmarked);
+    public ExpandedPost(String postId, String content, String postDate, User user, int heartsCount, int commentsCount, boolean isHearted, boolean isBookmarked, int repostCount, boolean isReposted, List<Comment> comments) {
+        super(postId, content, postDate, user, heartsCount, commentsCount, isHearted, isBookmarked, 0, false);
         this.comments = comments;
         this.isShowComents = true;
     }
