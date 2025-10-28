@@ -1,3 +1,10 @@
+How to run: 
+
+cd csci4370-project2
+mvn spring-boot:run -Dspring-boot.run.jvmArguments='-Dserver.port=8081'
+Go to: http://localhost:8081/
+
+
 Members and Contributions
 
   Stephanie Colunga: I implemented the end to end workflow that allows authenticated uses to create, view, and search posts
