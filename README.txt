@@ -46,3 +46,13 @@ My Phuong Ly: I implemented the post interaction features for the microblogging 
   3. Comments: 
   - Users can add comments; comments displayed oldest to newest; database operations handle storing and retrieving comments
   
+Susan Awad: I implemented the bookmarks page and hashtage search. The user can view all the posts that they have bookmarked and can
+unbookmark the post to remove it from the page. I also implemented the hashtag search where users can search for specific tags in the form
+"#hashtag" and any post that has that specific tag will appear in the list.
+Features I implemented:
+1. Bookmarks Page
+- Show posts that the logged in user has bookmarked
+- Can bookmark and unbookmark a post
+2. Hashtag Search
+- User can type in one or more hashtags into the search field (ie: #2025 #fireworks)
+- The results should show posts that have all hashtags with the most recent posts first
