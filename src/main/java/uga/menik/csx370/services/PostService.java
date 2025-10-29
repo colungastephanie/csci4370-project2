@@ -16,10 +16,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
-import jakarta.servlet.http.HttpServletRequest;
 import uga.menik.csx370.models.Comment;
 import uga.menik.csx370.models.Post;
 import uga.menik.csx370.models.User;
@@ -28,14 +25,16 @@ import uga.menik.csx370.utility.Utility;
 @Service
 public class PostService {
     private final DataSource ds;
+    private final RepostService repostService; 
     private static final Pattern HASHTAG = Pattern.compile("#(\\w{1,64})");
 
     @Autowired
     private DataSource datasource;
 
     @Autowired
-    public PostService(DataSource ds) {
+    public PostService(DataSource ds, RepostService repostService) {
         this.ds = ds;
+        this.repostService = repostService;
     }
 
     public static List<String> extractTags(String content) {
@@ -131,10 +130,10 @@ public class PostService {
                     // Get actual counts and states
                     int hearts = getLikesCount(postId);
                     int comments = getCommentCount(postId);
-                    int reposts = getRepostCount(postId);
+                    int reposts = repostService.getRepostCount(postId);
                     boolean isHearted = (userId != null) && hasUserLikedPost(userId, postId);
                     boolean isBookmarked = (userId != null) && hasUserBookmarked(userId, postId);
-                    boolean isReposted = (userId != null) && hasUserReposted(userId, postId);
+                    boolean isReposted = (userId != null) && repostService.hasUserReposted(userId, postId);
 
                     Post post = new Post(String.valueOf(postId), content, postDate, user,
                             hearts, comments, isHearted, isBookmarked,
@@ -349,10 +348,10 @@ public class PostService {
                     // Get actual counts and states
                     int hearts = getLikesCount(postId);
                     int comments = getCommentCount(postId);
-                    int reposts = getRepostCount(postId);
+                    int reposts = repostService.getRepostCount(postId);
                     boolean isHearted = hasUserLikedPost(userId, postId);
                     boolean isBookmarked = hasUserBookmarked(userId, postId);
-                    boolean isReposted = hasUserReposted(userId, postId);
+                    boolean isReposted = repostService.hasUserReposted(userId, postId);
 
                     Post post = new Post(String.valueOf(postId), content, postDate, user,
                             hearts, comments, isHearted, isBookmarked, reposts, isReposted);
@@ -365,114 +364,7 @@ public class PostService {
         return posts;
     }
 
-    /** Count reposts for a post. */
-    public int getRepostCount(int postId) {
-        final String sql = "SELECT COUNT(*) AS cnt FROM repost WHERE originalPostId = ?";
-        try (Connection conn = ds.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, postId);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next())
-                    return rs.getInt("cnt");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("error counting reposts for postId=" + postId, e);
-        }
-        return 0;
-    }
+    
+    
 
-    /** Did this user repost this post? */
-    public boolean hasUserReposted(int userId, int postId) {
-        final String sql = "SELECT 1 FROM repost WHERE userId = ? AND originalPostId = ? LIMIT 1";
-        try (Connection conn = ds.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            ps.setInt(2, postId);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("error checking repost state userId=" + userId + " postId=" + postId, e);
-        }
-    }
-
-    /** Toggle repost: add if not exists, remove if exists. */
-    public void toggleRepost(int userId, int postId) throws SQLException {
-        try (Connection conn = ds.getConnection()) {
-            // Check if already reposted
-            final String check = "SELECT 1 FROM repost WHERE userId = ? AND originalPostId = ? LIMIT 1";
-            boolean exists = false;
-            try (PreparedStatement ps = conn.prepareStatement(check)) {
-                ps.setInt(1, userId);
-                ps.setInt(2, postId);
-                try (ResultSet rs = ps.executeQuery()) {
-                    exists = rs.next();
-                }
-            }
-
-            if (exists) {
-                // Remove repost
-                final String delete = "DELETE FROM repost WHERE userId = ? AND originalPostId = ?";
-                try (PreparedStatement ps = conn.prepareStatement(delete)) {
-                    ps.setInt(1, userId);
-                    ps.setInt(2, postId);
-                    ps.executeUpdate();
-                }
-            } else {
-                // Add repost
-                final String insert = "INSERT INTO repost (userId, originalPostId) VALUES (?, ?)";
-                try (PreparedStatement ps = conn.prepareStatement(insert)) {
-                    ps.setInt(1, userId);
-                    ps.setInt(2, postId);
-                    ps.executeUpdate();
-                }
-            }
-        }
-    }
-
-    /** Get all posts that a user has reposted (most recent first). */
-    public List<Post> getRepostedPosts(int userId) {
-        List<Post> posts = new ArrayList<>();
-        final String sql = """
-                SELECT p.postId, p.content, p.createdAt,
-                       u.userId, u.firstName, u.lastName
-                FROM post p
-                JOIN repost r ON p.postId = r.originalPostId
-                JOIN user u ON p.userId = u.userId
-                WHERE r.userId = ?
-                ORDER BY r.createdAt DESC
-                """;
-        try (Connection conn = ds.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    int postId = rs.getInt("postId");
-                    String content = rs.getString("content");
-                    java.sql.Timestamp ts = rs.getTimestamp("createdAt");
-                    String uid = rs.getString("userId");
-                    String firstName = rs.getString("firstName");
-                    String lastName = rs.getString("lastName");
-
-                    User user = new User(uid, firstName, lastName);
-                    String postDate = Utility.foramtTime(ts);
-
-                    // Get actual counts and states
-                    int hearts = getLikesCount(postId);
-                    int comments = getCommentCount(postId);
-                    int reposts = getRepostCount(postId);
-                    boolean isHearted = hasUserLikedPost(userId, postId);
-                    boolean isBookmarked = hasUserBookmarked(userId, postId);
-                    boolean isReposted = hasUserReposted(userId, postId);
-
-                    Post post = new Post(String.valueOf(postId), content, postDate, user,
-                            hearts, comments, isHearted, isBookmarked, reposts, isReposted);
-                    posts.add(post);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("error getting reposted posts", e);
-        }
-        return posts;
-    }
 }

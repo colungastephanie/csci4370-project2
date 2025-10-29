@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.sql.SQLException;
-import java.sql.Types;
 
 import javax.sql.DataSource;
 
@@ -56,12 +55,12 @@ public class BookmarksServices {
                 /* counts */
                 (SELECT COUNT(*) FROM likes    l  WHERE l.postId = p.postId) AS likeCount,
                 (SELECT COUNT(*) FROM comments c  WHERE c.postId = p.postId) AS commentCount,
-                (SELECT COUNT(*) FROM repost   r2 WHERE r2.originalPostId = p.postId) AS repostCount,
+                (SELECT COUNT(*) FROM repost   r2 WHERE r2.postId = p.postId) AS repostCount,
     
                 /* state flags for this user */
                 EXISTS(SELECT 1 FROM likes    l2 WHERE l2.postId = p.postId AND l2.userId = ?) AS isHearted,
                 EXISTS(SELECT 1 FROM bookmark b2 WHERE b2.postId = p.postId AND b2.userId = ?) AS isBookmarked,
-                EXISTS(SELECT 1 FROM repost   r3 WHERE r3.originalPostId = p.postId AND r3.userId = ?) AS isReposted
+                EXISTS(SELECT 1 FROM repost   r3 WHERE r3.postId = p.postId AND r3.userId = ?) AS isReposted
     
             FROM bookmark b
             JOIN post  p ON p.postId = b.postId
@@ -117,14 +116,14 @@ public class BookmarksServices {
     
                 (SELECT COUNT(*) FROM likes    l  WHERE l.postId = p.postId) AS likeCount,
                 (SELECT COUNT(*) FROM comments c  WHERE c.postId = p.postId) AS commentCount,
-                (SELECT COUNT(*) FROM repost   r2 WHERE r2.originalPostId = p.postId) AS repostCount,
+                (SELECT COUNT(*) FROM repost   r2 WHERE r2.postId = p.postId) AS repostCount,
     
                 EXISTS(SELECT 1 FROM likes    l2 WHERE l2.postId = p.postId AND l2.userId = ?) AS isHearted,
                 EXISTS(SELECT 1 FROM bookmark b2 WHERE b2.postId = p.postId AND b2.userId = ?) AS isBookmarked,
-                EXISTS(SELECT 1 FROM repost   r3 WHERE r3.originalPostId = p.postId AND r3.userId = ?) AS isReposted
+                EXISTS(SELECT 1 FROM repost   r3 WHERE r3.postId = p.postId AND r3.userId = ?) AS isReposted
     
             FROM repost r
-            JOIN post  p ON p.postId = r.originalPostId
+            JOIN post  p ON p.postId = r.postId
             JOIN `user` u ON u.userId = p.userId
             WHERE r.userId = ?
             ORDER BY r.createdAt DESC

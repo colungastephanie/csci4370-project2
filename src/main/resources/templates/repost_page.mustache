@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+{{> fragments/html_header}}
+
+<body>
+
+    {{> fragments/top_bar}}
+
+    {{> fragments/no_content_message}}
+
+    {{> fragments/posts_container}}
+    <h2>My Reposts</h2>
+
+    {{#posts}}
+    {{> post}}  
+    {{/posts}}
+
+    {{^posts}}
+    <p>No reposts yet.</p>
+    {{/posts}}
+    {{> fragments/footer}}
+
+</body>
+
+</html>

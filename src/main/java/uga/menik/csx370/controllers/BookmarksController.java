@@ -78,36 +78,5 @@ public class BookmarksController {
         return mv;
     }
 
-    /**
-     * /bookmarks/reposts URL - displays all posts reposted by the logged-in user.
-     * This is the NEW CUSTOM FEATURE implementation.
-     */
-    @GetMapping("/reposts")
-    public ModelAndView repostsPage() {
-        if (!userService.isAuthenticated()) {
-            return new ModelAndView("redirect:/login");
-        }
-
-        ModelAndView mv = new ModelAndView("posts_page");
-
-        try {
-            User user = userService.getLoggedInUser();
-            int userId = Integer.parseInt(user.getUserId());
-
-            // Get all posts that this user has reposted
-            List<Post> reposts = bookmarksServices.getAllReposts(userId);
-
-            mv.addObject("posts", reposts);
-
-            if (reposts.isEmpty()) {
-                mv.addObject("isNoContent", true);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            mv.addObject("errorMessage", "Failed to load reposts.");
-            mv.addObject("isNoContent", true);
-        }
-
-        return mv;
-    }
+   
 }

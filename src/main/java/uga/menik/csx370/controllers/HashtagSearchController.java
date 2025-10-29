@@ -6,9 +6,6 @@ This is a project developed by Dr. Menik to give the students an opportunity to 
 package uga.menik.csx370.controllers;
 
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Locale;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import uga.menik.csx370.models.Post;
-import uga.menik.csx370.utility.Utility;
 import uga.menik.csx370.services.PostService;
-import uga.menik.csx370.services.UserService;
 import uga.menik.csx370.services.HashtagService;
 
 /**
@@ -32,13 +27,13 @@ import uga.menik.csx370.services.HashtagService;
 @RequestMapping("/hashtagsearch")
 public class HashtagSearchController {
     private final HashtagService hashtagService;
-    private final PostService postService;
+    
     private static final Pattern HASHTAG = Pattern.compile("#(\\w{1,64})");
 
     @Autowired
-    public HashtagSearchController(HashtagService hashtagService, PostService postService) {
+    public HashtagSearchController(HashtagService hashtagService) {
         this.hashtagService = hashtagService;
-        this.postService = postService;
+       
     }
 
     /**

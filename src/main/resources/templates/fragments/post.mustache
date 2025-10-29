@@ -21,7 +21,7 @@
             {{/isHearted}}
             {{^isHearted}}
             <form method="get" action="/post/{{postId}}/heart/true">
-                <button type="submit" class="fa fa-heart"></button>
+                <button type="submit" class="far fa-heart"></button>
             </form>
             {{/isHearted}}
             <span class="action-count">{{heartsCount}}</span>
@@ -37,7 +37,21 @@
                 <button class="far fa-bookmark"></button>
             </form>
             {{/isBookmarked}}
+
+            <!-- Reposts -->
+            {{#isReposted}}
+            <form method="get" action="/post/{{postId}}/repost/false">
+                <button class="fa fa-undo"></button>
+            </form>
+            {{/isReposted}}
+            {{^isReposted}}
+            <form method="get" action="/post/{{postId}}/repost/true">
+                <button class="fa fa-retweet"></button>
+            </form>
+            {{/isReposted}}
+            <span class="action-count">{{repostCount}}</span>
         </div>
+
 
         <!-- Comments container -->
         {{#isShowComents}}

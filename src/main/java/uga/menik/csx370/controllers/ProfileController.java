@@ -19,8 +19,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 
@@ -29,6 +27,7 @@ import javax.sql.DataSource;
 import uga.menik.csx370.models.Post;
 import uga.menik.csx370.models.User;
 import uga.menik.csx370.services.UserService;
+import uga.menik.csx370.utility.Utility;
 // import uga.menik.csx370.utility.Utility;
 /**
  * Handles /profile URL and its sub URLs.
@@ -82,8 +81,8 @@ public class ProfileController {
         } catch (Exception e) {
         // If an error occured, you can set the following property with the
         // error message to show the error message to the user.
-         String errorMessage = "Some error occured!";
-        mv.addObject("errorMessage", errorMessage);
+         //String errorMessage = "Some error occured!";
+       // mv.addObject("errorMessage", errorMessage);
 
         // Enable the following line if you want to show no content message.
         // Do that if your content list is empty.
@@ -93,36 +92,55 @@ public class ProfileController {
     }
 
     private List<Post> getUserPosts(String userId) throws SQLException {
-        final String sql = "select P.postId, P.content, P.createdAt, U.userId, U.firstName, U.lastName " +
-        "from post P join `user` U on P.userId = U.userId " +
-        "where P.userId = ? " + 
-        "order by P.createdAt desc";
+        final String sql = """
+        select 
+            P.postId, P.content, P.createdAt, U.userId, U.firstName, U.lastName, 
+        
+            (SELECT COUNT(*) FROM likes    l  WHERE l.postId = p.postId) AS likeCount,
+            (SELECT COUNT(*) FROM comments c  WHERE c.postId = p.postId) AS commentCount,
+            (SELECT COUNT(*) FROM repost   r2 WHERE r2.postId = p.postId) AS repostCount,
+    
+                /* state flags for this user */
+            EXISTS(SELECT 1 FROM likes    l2 WHERE l2.postId = p.postId AND l2.userId = ?) AS isHearted,
+            EXISTS(SELECT 1 FROM bookmark b2 WHERE b2.postId = p.postId AND b2.userId = ?) AS isBookmarked,
+            EXISTS(SELECT 1 FROM repost   r3 WHERE r3.postId = p.postId AND r3.userId = ?) AS isReposted
+    
+        from post P 
+        join `user` U on P.userId = U.userId 
+        where P.userId = ? 
+        order by P.createdAt desc
+        """;
 
         List<Post> out = new ArrayList<>();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("MMM dd, yyyy, hh:mm a");
         
         try (Connection conn = dataSource.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql)) {
                 pstmt.setInt(1,Integer.parseInt(userId));
+                pstmt.setInt(2,Integer.parseInt(userId));
+                pstmt.setInt(3,Integer.parseInt(userId));
+                pstmt.setInt(4,Integer.parseInt(userId));
+        
 
                 try (ResultSet rs = pstmt.executeQuery()) {
-                    while (rs.next()) {
-                        User user = new User (
-                            String.valueOf(rs.getInt("userId")),
-                            rs.getString("firstName"),
-                            rs.getString("lastName")
-                        ); 
-                        String date = dtf.format(
-                            rs.getTimestamp("createdAt").toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
-                        );
-                        Post post = new Post (
-                            String.valueOf(rs.getInt("postId")),
-                            rs.getString("content"),
-                            date, 
-                            user, 
-                            0, 0, false, false, 0, false
-                        );
-                        out.add(post);
+                     while (rs.next()) {
+                    String postId    = rs.getString("postId");
+                    String content   = rs.getString("content");
+                    java.sql.Timestamp ts = rs.getTimestamp("createdAt");
+                    String uid       = rs.getString("userId");
+                    String firstName = rs.getString("firstName");
+                    String lastName  = rs.getString("lastName");
+    
+                    int hearts    = rs.getInt("likeCount");
+                    int comments  = rs.getInt("commentCount");
+                    int reposts   = rs.getInt("repostCount");
+                    boolean isHearted    = rs.getBoolean("isHearted");
+                    boolean isBookmarked = rs.getBoolean("isBookmarked");
+                    boolean isReposted   = rs.getBoolean("isReposted");
+    
+                    User author = new User(uid, firstName, lastName);
+                     String date = Utility.foramtTime(ts); 
+                        out.add(new Post(postId, content, date, author,
+                                       hearts, comments, isHearted, isBookmarked, reposts, isReposted));
                     } //while
                 } //try - try
             } //try

@@ -24,27 +24,22 @@ import org.springframework.web.servlet.ModelAndView;
 import uga.menik.csx370.models.Comment;
 import uga.menik.csx370.models.ExpandedPost;
 import uga.menik.csx370.models.User;
-import uga.menik.csx370.services.BookmarksServices;
 import uga.menik.csx370.services.PostService;
 import uga.menik.csx370.services.UserService;
-
 @Controller
 @RequestMapping("/post")
 public class PostController {
 
     private final PostService postService;
     private final UserService userService;
-    private final BookmarksServices bookmarksServices;
     private final JdbcTemplate jdbcTemplate;
 
     @Autowired
     public PostController(PostService postService,
             UserService userService,
-            BookmarksServices bookmarksServices,
             JdbcTemplate jdbcTemplate) {
         this.postService = postService;
         this.userService = userService;
-        this.bookmarksServices = bookmarksServices;
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -217,7 +212,7 @@ public class PostController {
         }
     }
 
-    @GetMapping("/{postId}/repost/{isAdd}")
+    /* @GetMapping("/{postId}/repost/{isAdd}")
     public String addOrRemoveRepost(@PathVariable("postId") String postId,
             @PathVariable("isAdd") Boolean isAdd) {
         if (!userService.isAuthenticated()) {
@@ -229,7 +224,7 @@ public class PostController {
             int pid = Integer.parseInt(postId);
 
             // Toggle the repost
-            postService.toggleRepost(userId, pid);
+            repostService.toggleRepost(userId, pid);
 
             return "redirect:/post/" + postId;
         } catch (Exception e) {
@@ -238,5 +233,5 @@ public class PostController {
                     StandardCharsets.UTF_8);
             return "redirect:/post/" + postId + "?error=" + message;
         }
-    }
+    } */
 }

@@ -7,13 +7,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.sql.SQLException;
-import java.sql.Types;
 
 import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uga.menik.csx370.models.ExpandedPost;
 import uga.menik.csx370.models.Post;
 import uga.menik.csx370.models.User;
 import uga.menik.csx370.utility.Utility;
