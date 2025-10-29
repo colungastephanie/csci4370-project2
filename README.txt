@@ -79,3 +79,60 @@ Mohammed Nizar Meskine: I implemented the post detail page and backend features 
 	4.	Bookmark Integration
 - Connected the bookmark toggle to BookmarksServices, allowing users to bookmark or unbookmark posts.
 - Verified that the database and UI stay synchronized when bookmarks are added or removed.
+
+
+NEW FEATURE: REPOST 
+- Allows logged in users to repost any post by the clicking the repost button, and they have the ability 
+- to undo the repost the post. All of the logged in users reposts are displayed onto to the new 'Reposts' page.
+- Posts will also display the number of reposts it has.
+- Added repostCount and isReposted to the Post class. 
+- CODE: 
+  - ACCESS: 
+    - toggle repost/unrepost: 
+      - GET /post/{postId}/repost/true 
+      - GET /post/{postId}/repost/false
+      - or by clicking repost/undo buttons
+
+  - SERVICE: csci4370-project2/src/main/java/uga/menik/csx370/services/RepostService.java
+  - CONTROLLER: csci4370-project2/src/main/java/uga/menik/csx370/controllers/RepostController.java
+  - UI: 
+      - csci4370-project2/src/main/resources/templates/repost_page.mustache
+      - csci4370-project2/src/main/resources/templates/fragments/post.mustache
+
+  - SQL/SCHEMA ADDITIONS:
+
+    - CREATE TABLE IF NOT EXISTS repost (
+    userId         INT NOT NULL,           
+    postId         INT NOT NULL, 
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,          
+    PRIMARY KEY (userId, postId),
+    CONSTRAINT fk_repost_user FOREIGN KEY (userId) 
+        REFERENCES `user`(userId) ON DELETE CASCADE,
+    CONSTRAINT fk_repost_post FOREIGN KEY (postId) 
+        REFERENCES post(postId) ON DELETE CASCADE
+); 
+
+    - DELETE FROM repost WHERE userId = ? AND postId = ?
+
+    - INSERT INTO repost (userId, postId) VALUES (?, ?)
+
+    - SELECT p.postId, p.content, p.createdAt,
+                       u.userId, u.firstName, u.lastName, r.createdAt,
+
+                (SELECT COUNT(*) FROM likes    l  WHERE l.postId = p.postId) AS likeCount,
+                (SELECT COUNT(*) FROM comments c  WHERE c.postId = p.postId) AS commentCount,
+              
+                EXISTS(SELECT 1 FROM likes    l2 WHERE l2.postId = p.postId AND l2.userId = ?) AS isHearted,
+                EXISTS(SELECT 1 FROM bookmark b2 WHERE b2.postId = p.postId AND b2.userId = ?) AS isBookmarked,
+                EXISTS(SELECT 1 FROM repost   r3 WHERE r3.postId = p.postId AND r3.userId = ?) AS isReposted,
+                (SELECT COUNT(*) FROM repost    r4 WHERE r4.postId = p.postId) AS repostCount
+              
+                FROM repost r
+                JOIN post p ON p.postId = r.postId
+                JOIN user u ON p.userId = u.userId
+                WHERE r.userId = ?
+                ORDER BY r.createdAt DESC;
+
+
+
+
