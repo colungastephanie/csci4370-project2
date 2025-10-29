@@ -318,52 +318,6 @@ public class PostService {
         }
     }
 
-    /** Get all bookmarked posts for a user (most recent first). */
-    public List<Post> getBookmarkedPosts(int userId) {
-        List<Post> posts = new ArrayList<>();
-        final String sql = """
-                SELECT p.postId, p.content, p.createdAt,
-                       u.userId, u.firstName, u.lastName
-                FROM post p
-                JOIN bookmark b ON p.postId = b.postId
-                JOIN user u ON p.userId = u.userId
-                WHERE b.userId = ?
-                ORDER BY b.createdAt DESC
-                """;
-        try (Connection conn = ds.getConnection();
-                PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, userId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    int postId = rs.getInt("postId");
-                    String content = rs.getString("content");
-                    java.sql.Timestamp ts = rs.getTimestamp("createdAt");
-                    String uid = rs.getString("userId");
-                    String firstName = rs.getString("firstName");
-                    String lastName = rs.getString("lastName");
-
-                    User user = new User(uid, firstName, lastName);
-                    String postDate = Utility.foramtTime(ts);
-
-                    // Get actual counts and states
-                    int hearts = getLikesCount(postId);
-                    int comments = getCommentCount(postId);
-                    int reposts = repostService.getRepostCount(postId);
-                    boolean isHearted = hasUserLikedPost(userId, postId);
-                    boolean isBookmarked = hasUserBookmarked(userId, postId);
-                    boolean isReposted = repostService.hasUserReposted(userId, postId);
-
-                    Post post = new Post(String.valueOf(postId), content, postDate, user,
-                            hearts, comments, isHearted, isBookmarked, reposts, isReposted);
-                    posts.add(post);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("error getting bookmarked posts", e);
-        }
-        return posts;
-    }
-
     
     
 

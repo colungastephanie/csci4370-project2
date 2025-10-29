@@ -41,21 +41,5 @@ public class FollowService {
             }
         }
     }
- /* 
-    // checking if one user follows another
-    public boolean isFollowing(String followerId, String followedUserId) throws SQLException {
-        int follower = Integer.parseInt(followerId);
-        int followed = Integer.parseInt(followedUserId);
-
-        try (Connection conn = dataSource.getConnection();
-                PreparedStatement ps = conn.prepareStatement(
-                    "Select 1 from follow where followerId = ? AND followedUserId = ?")) {
-            ps.setInt(1, follower);
-            ps.setInt(2, followed);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }   
-        }
-    }  
-        */
+ 
 }
